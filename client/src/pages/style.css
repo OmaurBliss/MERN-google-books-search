@@ -1,0 +1,32 @@
+body{
+    background-image: url("../images/background.jpg")
+  }
+  
+  
+  .book {
+      margin: 20px
+  }
+  
+  .btn{
+      margin-left: 5px;
+  }
+  
+  .btn-view{
+      background-color: rgb(69, 69, 83);
+  }
+  
+  .card-link{
+      color:white;
+  }
+  
+  .card-text{
+      overflow-y: scroll;
+      height: 150px;
+  }
+  
+  .img {
+      margin-top: 30px;
+      margin-left:30px;
+      height: 200px;
+      width: 150px;
+  }

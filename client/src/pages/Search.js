@@ -1,145 +1,129 @@
-import React, { Component } from 'react';
+import React, { useState } from "react";
 import { Row, Container } from "../components/Grid";
-import Button from "../components/Buttons";
-import { BookList, BookListItem } from "../components/BookList";
+import {Input, FormBtn} from "../components/Form";
 import API from "../utils/API";
+import "./style.css"
+import Jumbotron from "../components/Jumbotron";
 
-class Search extends Component {
+const Search = () => {
+  // Setting our component's initial state
+  const [books, setBooks] = useState([]);
+  const [searchBook, setSearchBook] = useState("");
 
-  state = {
-    books: [],
-    bookSearch: "",
-    savedBooks: [],
-    screenWidth: window.innerWidth,
-    searched: ""
+  
+  // Handles updating component state when the user types into the input field
+  const handleInputChange = e => {
+    const { value } = e.target;
+    setSearchBook(value);
   };
 
-  componentDidMount() {
-    this.loadSavedBooks();
-    window.addEventListener('resize', this.updateDimensions);
-  }
+    // When the form is submitted, use the API.saveBook method to save the book data
+  // Then reload books from the database
+  const handleFormSubmit = e => {
+    e.preventDefault();
+    API.getBooks(searchBook)
+      .then((res) => {
+        setBooks(res.data.items);
+      })
+      .catch((err) => console.log(err));
+  };
+  
+  const handleSaveBook = (e, data) => {
+    e.preventDefault();
 
-  checkIfSaved = googleId => {
-    // not forEach used because we want the return statement break the loop
-    for (let i in this.state.savedBooks) {
-      if (this.state.savedBooks[i].googleId === googleId) return true
-    }
-    return false;
-  }
-
-  checkSavedDate = googleId => {
-    for (let i in this.state.savedBooks) {
-      if (this.state.savedBooks[i].googleId === googleId) return API.getDate(this.state.savedBooks[i]._id);
-    }
-    return null;
-  }
-
-  updateDimensions = () => {
-    this.setState({screenWidth: window.innerWidth});
-  }
-
-  loadSavedBooks = () => {
-    API.getSavedBooks()
-    .then(res => {
-      this.setState({ savedBooks: res.data });
-    })
-  }
-
-  handleInputChange = event => {
-    const { name, value } = event.target;
-    this.setState({
-      [name]: value
-    });
+    API.saveBook(data)
+      .then((res) => alert("Book Saved!"))
+      .catch((err) => console.log(err));
   };
 
-  handleFormSubmit = event => {
-    event.preventDefault();
-    this.setState({
-      searched: this.state.bookSearch,
-      bookSearch: ""
-    });
-    API.getBooks(this.state.bookSearch)
-    .then(res => this.setState({ books: res.data }, () => console.log(res.data)))
-    .catch(err => console.log(err));
-  };
-
-  deleteSavedBook = (event, googleId) => {
-    event.preventDefault();
-    API.deleteSavedBook(googleId)
-    .then(res => this.loadSavedBooks())
-    .catch(err => console.log(err));
-  };
-
-  handleSave = (event, googleId, title, authors, description, href, thumbnail) => {
-    event.preventDefault();
-    API.saveBook({ googleId, title, authors, description, href, thumbnail })
-    .then(res => this.loadSavedBooks());
-  }
-
-  render() {
-    return (
-      <Container>
-        <Row>
-          <div className="col rounded text-center bg-secondary mt-4 p-4">
-            <h1>Google Book Search</h1>
-            <h4>Search and save your favorite books!</h4>
-          </div>
-        </Row>
-        <Row>
-          <div className="col rounded bg-light mb-4 mt-4 p-4">
-            <h4>Book Search</h4>
-            <form>
-              <div className="form-group">
-                <label htmlFor="bookSearch">Book</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="bookSearch"
-                  name="bookSearch"
-                  value={this.state.bookSearch}
-                  onChange={this.handleInputChange} />
-              </div>
-              <Button className="btn btn-primary" onClick={this.handleFormSubmit}>Search</Button>
-            </form>
-          </div>
-        </Row>
-        <Row>
-          <div className="col border border-rounded p-3 mb-4">
-            {this.state.searched === "" ? (
-            <h4>Results</h4>
-            ) : (
-              <h4>Results for {this.state.searched}</h4>
-            )}
-            {!this.state.books.length ? (
-              <h6 className="text-center">No books to display currently</h6>
-            ) : (
-                <BookList>
-                  {this.state.books.map(book => {
-                    return (
-                      <BookListItem
-                        key={book.volumeInfo.infoLink}
-                        googleId={book.id}
-                        title={book.volumeInfo.title || "Title Unavailable"}
-                        authors={book.volumeInfo.authors || ["Unknown Author"]}
-                        description={book.volumeInfo.description || "No description available"}
-                        thumbnail={book.volumeInfo.imageLinks ? book.volumeInfo.imageLinks.smallThumbnail : "img/placeholder.png"}
+  return (
+    <Container>
+      <Row>
+        <Container fluid>
+          <Jumbotron>
+            <h1>Discover</h1>
+          </Jumbotron>
+          <h4>Book Search</h4>
+          <Input
+            placeholder="Search Google Books"
+            onChange={handleInputChange}
+          />
+          <FormBtn onClick={handleFormSubmit}>Search</FormBtn>
+        </Container>
+      </Row>
+      <Row>
+        <Container>
+          {books.length ? (
+            <div
+              className="row row-cols-3"
+              style={{ justifyContent: "center" }}
+            >
+              {books.map((book) => {
+                return (
+                  <div 
+                    key={book.id}
+                    className="book card col-sm-3"
+                  >
+                    <img 
+                      src={
+                        book.volumeInfo.imageLinks
+                          ? book.volumeInfo.imageLinks.thumbnail
+                          : "http://icons.iconarchive.com/icons/paomedia/small-n-flat/128/book-icon.png"
+                      }
+                      className="img card-img-top"
+                      alt="..."
+                    ></img>
+                    <div className="card-body">
+                      <h5 className="card-title">
+                        {book.volumeInfo.title}
+                      </h5>
+                      <h5 className="card-title">
+                        {book.volumeInfo.authors}
+                      </h5>
+                      <p className="card-text">
+                        {book.volumeInfo.description
+                          ? book.volumeInfo.description
+                          : "No Description Available"} 
+                      </p>
+                      <button
+                        className="btn btn-dark"
+                        onClick={(e) =>
+                          handleSaveBook(e, {
+                            title: book.volumeInfo.title,
+                            image: book.volumeInfo.imageLinks
+                              ? book.volumeInfo.imageLinks
+                                .thumbnail
+                              : "http://icons.iconarchive.com/icons/paomedia/small-n-flat/128/book-icon.png",
+                            authors: book.volumeInfo.authors,
+                            description:
+                              book.volumeInfo.description,
+                            link: book.volumeInfo.infoLink,
+                          })
+                        }
+                      >
+                        SAVE
+                        </button>
+                        <button  className="btn btn-view">
+                      <a
                         href={book.volumeInfo.infoLink}
-                        saved={this.checkIfSaved(book.id)}
-                        clickEvent={this.checkIfSaved(book.id)
-                          ? this.deleteSavedBook
-                          : this.handleSave}
-                        date={this.checkSavedDate(book.id)}
-                        screenWidth={this.state.screenWidth}
-                      />
-                    );
-                  })}
-                </BookList>
-              )}
-          </div>
-        </Row>
-      </Container>
-    )
-  }
-}
-
+                        rel="noopener noreferrer"
+                        target={"_blank"}
+                        className="card-link"
+                      >
+                        VIEW
+                        </a>
+                        </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+              <h5> </h5>
+            )}
+        </Container>
+      </Row>
+    </Container>
+  );
+};
 export default Search;

@@ -1,76 +1,109 @@
-import React, { Component } from "react";
-import { Row, Container } from "../components/Grid";
-import { BookList, BookListItem } from "../components/BookList";
-import API from "../utils/API";
+  
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Col, Row, Container } from "../components/Grid";
+import API from "../utils/API"
+import Jumbotron from "../components/Jumbotron";
+import "./style.css";
 
-class Saved extends Component {
+const Saved = () => {
+  // Setting our component's initial state
+  const [books, setBooks] = useState([]);
 
-  state = {
-    savedBooks: [],
-    screenWidth: window.innerWidth
+
+  // Loads all saved books and sets them to books
+  const loadSavedBooks = async () => {
+      try {
+          const saved = await API.getSavedBooks();
+          setBooks(saved.data);
+      } catch (err) {
+          throw err;
+      }
   }
 
-  componentDidMount() {
-    this.loadSavedBooks();
-    window.addEventListener('resize', this.updateDimensions);
+  // Loads all books
+  useEffect(() => {
+      loadSavedBooks();
+  }, [books]);
+
+   // Deletes a book from the database with a given id, then reloads books from the db
+  const handleDeleteBook = async (id) => {
+      try {
+          await API.deleteBook(id)
+          const savedBooks = books.filter(book => book.id !== id);
+          setBooks(savedBooks);
+      } catch (err) {
+          throw err;
+      }
   }
 
-  updateDimensions = () => {
-    this.setState({screenWidth: window.innerWidth}, () => console.log(this.state.screenWidth))
-  }
-
-  loadSavedBooks = () => {
-    API.getSavedBooks()
-      .then(res =>
-        this.setState({ savedBooks: res.data }))
-  }
-
-  deleteSavedBook = (event, googleId) => {
-    event.preventDefault();
-    API.deleteSavedBook(googleId)
-      .then(res => this.loadSavedBooks())
-      .catch(err => console.log(err));
-  };
-
-  render() {
-    return (
-      <Container>
-        <Row>
-          <div className="col rounded text-center bg-info mt-4 mb-4 p-4">
-            <h1>Saved Books</h1>
+  return (
+    <Container fluid>
+         <Jumbotron>
+            <h1>My Books</h1>
+          </Jumbotron>
+      <Col size="md-2">
+            <Link to="/">← Back to Search</Link>
+          </Col>
+      <Row>
+        {books.length ? (
+          <div
+            className='row row-cols-3'
+            style={{ justifyContent: 'center' }}
+          >
+            {books.map((book) => {
+              return (
+                <div
+                  key={book._id}
+                  className='book card col-sm-3'
+                >
+                  <img
+                    src={
+                      book.image
+                        ? book.image
+                        : 'http://icons.iconarchive.com/icons/paomedia/small-n-flat/128/book-icon.png'
+                    }
+                    className='img card-img-top'
+                    alt='...'
+                  ></img>
+                  <div className='card-body'>
+                    <h5 className='card-title'>{book.title}</h5>
+                    <h5 className='card-title'>{book.authors}</h5>
+                    <p className='card-text'>
+                      {book.description
+                        ? book.description
+                        : 'No Description Available'}
+                    </p>
+                    <button
+                      className='btn btn-dark'
+                      onClick={() => handleDeleteBook(book._id)}
+                    >
+                      DELETE
+                    </button> 
+                    <button  className="btn btn-view">
+                    <a
+                      href={book.link}
+                      rel='noopener noreferrer'
+                      target={'_blank'}
+                      className='card-link'
+                      style={{ padding: '12px' }}
+                    >
+                      VIEW
+                    </a>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </Row>
-        <Row>
-          <div className="col border border-rounded p-3 mb-4">
-            <h4>Saved Books</h4>
-            {!this.state.savedBooks.length ? (
-              <h6 className="text-center">No books saved to display</h6>
-            ) : (
-                <BookList>
-                  {this.state.savedBooks.map(book => {
-                    return (
-                      <BookListItem
-                        key={book.googleId}
-                        googleId={book.googleId}
-                        title={book.title}
-                        authors={book.authors}
-                        description={book.description}
-                        thumbnail={book.thumbnail}
-                        href={book.href}
-                        date={API.getDate(book._id)}
-                        saved={true}
-                        clickEvent={this.deleteSavedBook}
-                        screenWidth={this.state.screenWidth}
-                      />
-                    );
-                  })}
-                </BookList>
-              )}
+        ) : (
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <h5>No Results to Display</h5>
           </div>
-        </Row>
-      </Container>
-    )
-  }
+        )}
+      </Row>
+    </Container>
+  );
 }
 
 export default Saved;

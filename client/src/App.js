@@ -1,10 +1,9 @@
 import React from "react";
-import 'bootswatch/dist/lumen/bootstrap.min.css';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import Nav from "./components/Nav";
-import Search from "./pages/Search";
 import Saved from "./pages/Saved";
+import Search from "./pages/Search";
 import NoMatch from "./pages/NoMatch";
+import Nav from "./components/Nav";
 
 function App() {
   return (
@@ -12,14 +11,19 @@ function App() {
       <div>
         <Nav />
         <Switch>
-          <Route exact path="/" component={Search} />
-          <Route path="/saved" component={Saved} />
-          <Route component={NoMatch} />
+          <Route exact path={["/", "/search"]}>
+            <Search />
+          </Route>
+          <Route exact path="/saved">
+            <Saved />
+          </Route>
+          <Route>
+            <NoMatch />
+          </Route>
         </Switch>
       </div>
     </Router>
   );
 }
-
 
 export default App;
