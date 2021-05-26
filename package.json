@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm start"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +15,7 @@
     "express": "^4.17.1",
     "if-env": "^1.0.4",
     "logger": "0.0.1",
-    "mongoose": "^5.12.8"
+    "mongoose": "^5.12.8",
+    "path": "^0.12.7"
   }
 }
